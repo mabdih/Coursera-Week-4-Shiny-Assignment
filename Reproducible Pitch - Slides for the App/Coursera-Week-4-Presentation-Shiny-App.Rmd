@@ -1,0 +1,68 @@
+---
+title: "Week 4 - Assignment - Lahman Teams Baseball Data"
+author: "Mohamed Hussein"
+date: "7/16/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction to the Shiny App
+
+In this assigment, I use baseball teams historic data from the R package {Lahman} to visualize how run differential can be used to predict a team's winning percentage that is:
+
+- `(Runs - Runs allowed)`
+- `( Wins / Wins + Losses)`
+
+## Introduction to Data
+
+Here is a snapshort of the data - which in its current entirety contains 2925 observations and 48 variables. Fore the purpose of this simple app, I use only records from the year 2000 to 2019.
+
+```{r, comment=""}
+library(Lahman)
+data("Teams")
+head(Teams[Teams$yearID > 2000, c(1:8)])
+```
+
+## Main Plot - Win % vs Run Differential
+In the app, you are able to choose different dates and see changes in the slope and intercept 
+```{r echo=FALSE}
+library(ggplot2)
+Teams$RD <- with(Teams, R - RA)
+Teams$Wpct <- with (Teams, W / (W + L))
+linfit <- lm(Wpct ~ RD, data = Teams)
+
+ggplot(data=Teams, aes(x=RD, y=Wpct)) + 
+            geom_point(alpha=0.3) + 
+            geom_abline(slope = linfit$coefficients[2], intercept = linfit$coefficients[1]) +
+            labs(title = "Plot of a Team's Run Differential vs Win Percentage", 
+                 subtitle = paste0("Slope: ", round(linfit$coefficients[1],5), 
+                                  ", Intercept: ", round(linfit$coefficients[2],5))) +
+            xlab("Run Differential") + ylab("Winning Percentage") +
+            theme(plot.title = element_text(face="bold"))
+```
+
+## Plot of Residuals
+
+```{r cars, echo = FALSE}
+#prediction and Residuals
+Teams <- Teams[Teams$yearID >= 2000,]
+Teams$RD <- with(Teams, R - RA)
+Teams$Wpct <- with (Teams, W / (W + L))
+linfit <- lm(Wpct ~ RD, data = Teams)
+Teams$linWpct <- predict(linfit)
+Teams$linResids <- residuals(linfit)
+
+#Graph of Residuals
+plot(Teams$RD, Teams$linResids,
+     xlab="Run Differential",
+     ylab="Residual")
+abline(h=0, lty = 3)
+```
+
+## Thank you
+
+Thank you for taking the time to review my work. Appreciated!
+
